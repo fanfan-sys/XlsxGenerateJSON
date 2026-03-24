@@ -1,0 +1,51 @@
+name: Build Linux Binary
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r generate/requirements.txt
+          pip install pyinstaller
+      
+      - name: Build binary
+        run: |
+          cd generate
+          pyinstaller --onefile --name "训练语料生成工具" generate_all_complete.py
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-binary
+          path: generate/dist/训练语料生成工具
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-binary
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: 训练语料生成工具
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
