@@ -6,6 +6,9 @@ on:
       - 'v*'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,13 +28,15 @@ jobs:
       - name: Build binary
         run: |
           cd generate
-          pyinstaller --onefile --name "训练语料生成工具" generate_all_complete.py
+          ls -la
+          pyinstaller --onefile --name "train-corpora-generator" generate_all_complete.py
+          ls -la dist/
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-binary
-          path: generate/dist/训练语料生成工具
+          path: generate/dist/train-corpora-generator
 
   release:
     needs: build
@@ -46,6 +51,6 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: 训练语料生成工具
+          files: train-corpora-generator
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
